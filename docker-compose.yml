@@ -1,0 +1,43 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+
+    # Map local port on host to container port 5678
+    ports:
+      - "${N8N_PORT}:5678"
+
+    environment:
+      # Basic authentication for UI access
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+
+      # Timezone for workflows and execution timestamps
+      - TZ=${GENERIC_TIMEZONE}
+
+      # SQLite database configuration (lightweight embedded DB)
+      - DB_TYPE=${DB_TYPE}
+      - DB_SQLITE_DATABASE=${DB_SQLITE_DATABASE}
+
+      # External webhook URL (optional)
+      - WEBHOOK_URL=http://localhost:${N8N_PORT}/
+
+      # Hostname for the instance
+      - N8N_HOST=localhost
+
+      # Allow community packages to use tools (e.g., filesystem, child_process, etc.)
+      - N8N_COMMUNITY_PACKAGE_ALLOW_TOOL_USAGE=true
+      - N8N_COMMUNITY_PACKAGE_ALLOW_TOOL_USAGE_IN_WORKFLOWS=true
+
+    # Mount local folder to persist SQLite DB and user settings
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+
+    networks:
+      - n8n_net
+
+# Define a Docker bridge network (optional but helps with multiple services)
+networks:
+  n8n_net:
+    driver: bridge
